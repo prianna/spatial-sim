@@ -7,12 +7,12 @@
 //
 
 #include <iostream>
+#include "Globals.h"
+#include "ModelWorld.h"
 
 int main(int argc, const char * argv[])
 {
-
-    // insert code here...
-    std::cout << "Hello, World!\n";
-    return 0;
+    ModelWorld graph( 1 );
+    graph.CallSim(0, 10);
 }
 

@@ -13,6 +13,8 @@
 #include <vector>
 #include <cmath>
 #include <random>
+#include <string>
+#include "FileIO.h"
 #include "Globals.h"
 #include "Patch.h"
 
@@ -52,14 +54,24 @@ inline bool operator>( const State &LHS, const double &RHS )
 class Gillespie
 {
  public:
-    Gillespie( std::vector<Patch*> States );
-    double Iterate();
-
+    Gillespie( const std::vector<Patch*> States, int prefix );
+    
+    // Can either simulate using random numbers OR using a vector specifying
+    // initial pop and patch indexes to seed infection at.
+    void Simulate( int t_init, int t_max );
+    
+    // Use suffix file.
+    void Simulate( std::string file, int t_init, int t_max);
+    
  private:
+    double Iterate();
     double ComputeTotalRate();
     int TypeToMove( const State &i );
     void MakeMove( int from, int to, int type );
-
+    void OutputStates( double t );
+    
+    FileIO ioDevice;
+    std::string prefix;
     std::vector<State> curStates;
     std::random_device rd;
     std::mt19937 gen;

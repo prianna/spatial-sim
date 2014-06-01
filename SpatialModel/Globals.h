@@ -23,9 +23,9 @@ inline constexpr T POW( const T base, unsigned const power )
 constexpr int BRANCH = 4; // Branching ratio for tree.
 const int HEIGHT = 3; // Height of tree.
 const int MAX_LEVEL = 2; // Index of max level, counting from 0.
-const int INDEX_L0 = 0; // Min index of L0 nodes.
-const int INDEX_L1 = 1; // Min index of L1 nodes.
-const int INDEX_L2 = 5; // Min index of L2 nodes.
+const int MIN_INDEX_L0 = 0; // Min index of L0 nodes.
+const int MIN_INDEX_L1 = 1; // Min index of L1 nodes.
+const int MIN_INDEX_L2 = 5; // Min index of L2 nodes.
 constexpr int LEVELS[HEIGHT] = {0, 1, 2};
 constexpr int LEVEL_0 = 0; // Root node level.
 constexpr int LEVEL_1 = 1; // Nonleaf node level.
@@ -53,8 +53,11 @@ const double GAMMA = 0.4;
 const double FLOW = 1/16;
 
 // Initial populations at root, nonleaf, leaf node levels.
-const int INIT_S_0 = static_cast<int>(NUM_L0*POW(BRANCH, MAX_LEVEL-LEVEL_0)*MAGNITUDE);
-const int INIT_S_1 = static_cast<int>(NUM_L1*POW(BRANCH, MAX_LEVEL-LEVEL_1)*MAGNITUDE);
-const int INIT_S_2 = static_cast<int>(NUM_L2*POW(BRANCH, MAX_LEVEL-LEVEL_2)*MAGNITUDE);
+const int INIT_S_0 = static_cast<int>(NUM_L0*POW(BRANCH, MAX_LEVEL-LEVEL_0)
+                                            *MAGNITUDE);
+const int INIT_S_1 = static_cast<int>(NUM_L1*POW(BRANCH, MAX_LEVEL-LEVEL_1)
+                                            *MAGNITUDE);
+const int INIT_S_2 = static_cast<int>(NUM_L2*POW(BRANCH, MAX_LEVEL-LEVEL_2)
+                                            *MAGNITUDE);
 
 #endif

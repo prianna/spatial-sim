@@ -27,14 +27,6 @@ public:
     int GetTotalPop(){ return nT; }
     double GetBeta(){ return beta; }
     const std::vector<int> GetAdjIndices();
-
-    // Mutator functions.
-    void IncS( int i );
-    void DecS( int i );
-    void IncI( int i );
-    void DecI( int i );
-    void IncR( int i );
-    void DecR( int i );
     
     template <typename T>
     void InsertPop( std::vector<T> &X )
@@ -47,8 +39,6 @@ public:
     void AddNeighbor( const Patch* adjacent, int index );
     
 private:
-    void computeNeighbors( double Disp );
-    
     // Containers to hold susceptible, infected, and recovered individuals.
     // TEMPLATE THIS.
     std::vector<int> S, I, R, A;
@@ -59,6 +49,7 @@ private:
         int index;
     };
     std::vector<Neighbor> neighbors;
+    std::vector<int> adjacentIndices;
     // Current number of suseceptibles, infecteds, recovereds, and total.
     int nS, nI, nR, nT;
     int level;

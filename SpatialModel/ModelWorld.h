@@ -19,23 +19,20 @@
 class ModelWorld {
 
 public:
-    ModelWorld();
+    ModelWorld( int numSims );
     ~ModelWorld();
     
-    double GetDij( int i, int j ){ return matrixD[i][j]; }
+    void CallSim( int t_init, int t_max );
+    void CallSim( std::string file );
     
 private:
-    // Adjacency matrix (edges) between nodes.
-    double matrixA[NUM_NODES][NUM_NODES];
-    
-    // Dispersal matrix.
-    double matrixD[NUM_NODES][NUM_NODES];
-    
     // Nodes
     std::vector<Patch*> nodes;
     
     // Gillespie object to simulate next state.
-    Gillespie *SSA;
+    std::vector<Gillespie*> SSA;
+    
+    int numSSA;
 
 };
 

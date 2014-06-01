@@ -8,7 +8,9 @@
 
 #include "Gillespie.h"
 
-enum {INFECTION, RECOVERY, NEIGHBOR1, NEIGHBOR2, NEIGHBOR3, NEIGHBOR4, NEIGHBOR5} EVENTS;
+enum {INFECTION, RECOVERY, NEIGHBOR1,
+      NEIGHBOR2, NEIGHBOR3, NEIGHBOR4,
+      NEIGHBOR5} EVENTS;
 
 //! \brief A generic binary search using C++ templates and iterators
 //! \param begin Iterator pointing to the first element
@@ -47,11 +49,12 @@ Iterator binSearch(Iterator& begin, Iterator& end, const T& key)
 
 //! \brief Constructor for class Gillespie.
 //! \param States Vector of patch variables to be "loaded" as states.
-Gillespie::Gillespie( std::vector<Patch*> States )
-: gen(rd()), runif(0.0, 1.0)
+Gillespie::Gillespie( const std::vector<Patch*> States, int run )
+: gen(rd()), runif(0.0, 1.0), prefix("run"+std::to_string(run)+"_")
 {
     double curInf = 0, curSup = 0;
-    for (std::vector<Patch*>::iterator it = States.begin(); it != States.end(); ++it)
+    for (std::vector<Patch*>::const_iterator it = States.begin();
+                                       it!= States.end(); ++it)
     {
         State cur;
         cur.adj = (*it)->GetAdjIndices();
@@ -84,6 +87,42 @@ Gillespie::Gillespie( std::vector<Patch*> States )
         
         curStates.push_back(cur);
     }
+}
+
+void Gillespie::Simulate( int t_init, int t_max )
+{
+    std::uniform_int_distribution<> rNumInit(1, NUM_NODES-MIN_INDEX_L2);
+    std::uniform_int_distribution<> rNumInfected(1, INIT_S_2);
+    std::uniform_int_distribution<> rSeedIndex(MIN_INDEX_L2, NUM_NODES-1);
+    
+    int numInit = rNumInit(gen);
+    std::vector<int> numInfected, seedIndex;
+    
+    for (int i = 0; i < numInit; ++i)
+    {
+        seedIndex.push_back(rSeedIndex(gen));
+        numInfected.push_back(rNumInfected(gen));
+    }
+    
+    for (std::vector<int>::iterator it = seedIndex.begin();
+                                    it != seedIndex.end(); ++it)
+    {
+        curStates.at(*it).I = numInfected.at(it-seedIndex.begin());
+        curStates.at(*it).S -= curStates.at(*it).I;
+    }
+    
+    std::string suffix = "randSeed";
+    ioDevice.OpenFile(suffix+prefix);
+    std::string header = "Node\tT\tS\tI\tR\n";
+    ioDevice.WriteHeader(header);
+    
+    for (double i = t_init; i < t_max; )
+    {
+        i += Iterate();
+        OutputStates( i );
+    }
+    
+    ioDevice.CloseFile(suffix+prefix);
 }
 
 double Gillespie::Iterate()
@@ -171,7 +210,8 @@ double Gillespie::ComputeTotalRate()
 {
     double totRate = 0;
     
-    for (std::vector<State>::iterator it = curStates.begin(); it != curStates.end(); ++it)
+    for (std::vector<State>::iterator it = curStates.begin();
+                                    it != curStates.end(); ++it)
     {
         for (int i = 0; i < MAX_EVENTS; ++i)
         {
@@ -217,5 +257,21 @@ void Gillespie::MakeMove(int i, int j, int type)
             
         default:
             break;
+    }
+}
+
+void Gillespie::OutputStates( double i )
+{
+    char index, S, I, R, T = i, delim = '\t';
+    
+    for (std::vector<State>::iterator it = curStates.begin();
+         it != curStates.end(); ++it)
+    {
+        index = static_cast<char>(it - curStates.begin());
+        S = static_cast<char>(it->S);
+        I = static_cast<char>(it->I);
+        R = static_cast<char>(it->R);
+        std::string line({index, delim, T, delim, S, delim, I, delim, R});
+        ioDevice.WriteLine(line);
     }
 }
