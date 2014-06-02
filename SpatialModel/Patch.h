@@ -26,30 +26,31 @@ public:
     int GetLevel(){ return level; }
     int GetTotalPop(){ return nT; }
     double GetBeta(){ return beta; }
-    const std::vector<int> GetAdjIndices();
+    std::vector<int> GetAdjIndices();
     
+    /*
     template <typename T>
-    void InsertPop( std::vector<T> &X )
+     void InsertPop( std::vector<T> &X )
     {
         X.push_back(&S);
         X.push_back(&I);
         X.push_back(&R);
     }
+     */
     
-    void AddNeighbor( const Patch* adjacent, int index );
+    void AddNeighbor( const Patch *adjacent, int index );
     
 private:
     // Containers to hold susceptible, infected, and recovered individuals.
     // TEMPLATE THIS.
-    std::vector<int> S, I, R, A;
+    //std::vector<int> S, I, R, A;
     
     struct Neighbor
     {
-        Patch* neighbor;
+        const Patch* neighbor;
         int index;
     };
     std::vector<Neighbor> neighbors;
-    std::vector<int> adjacentIndices;
     // Current number of suseceptibles, infecteds, recovereds, and total.
     int nS, nI, nR, nT;
     int level;

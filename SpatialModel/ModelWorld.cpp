@@ -6,17 +6,17 @@
 
 #include "ModelWorld.h"
 
-ModelWorld::ModelWorld( int numSims )
-: numSSA(numSims)
+ModelWorld::ModelWorld( int numSims, int numRun )
+: numSSA(numSims), numRun(numRun)
 {
     for (int i = 0; i < NUM_NODES; ++i)
     {
         if (i == MIN_INDEX_L0)
-        { nodes.push_back( new Patch(LEVEL_0)); }
-        if (i >= MIN_INDEX_L1 && i < MIN_INDEX_L2)
-        { nodes.push_back( new Patch(LEVEL_1)); }
-        if (i >= MIN_INDEX_L2 && i < NUM_NODES)
-        { nodes.push_back( new Patch(LEVEL_2)); }
+        { nodes.push_back( new Patch(LEVEL_0) ); }
+        else if (i >= MIN_INDEX_L1 && i < MIN_INDEX_L2)
+        { nodes.push_back( new Patch(LEVEL_1) ); }
+        else if (i >= MIN_INDEX_L2 && i < NUM_NODES)
+        { nodes.push_back( new Patch(LEVEL_2) ); }
     }
     
     for ( std::vector<Patch*>::iterator it = nodes.begin(); it != nodes.end(); ++it )
@@ -57,7 +57,7 @@ ModelWorld::ModelWorld( int numSims )
     
     for (int i = 0; i < numSims; ++i)
     {
-        SSA.push_back( new Gillespie(nodes, i) );
+        SSA.push_back( new Gillespie(nodes, numRun) );
     }
 }
 
@@ -83,5 +83,13 @@ void ModelWorld::CallSim(int t_init, int t_max)
     for ( std::vector<Gillespie*>::iterator it = SSA.begin(); it != SSA.end(); ++it)
     {
         (*it)->Simulate(t_init, t_max);
+    }
+}
+
+void ModelWorld::CallSim(int numSeed, int numPatches, int t_init, int t_max)
+{
+    for ( std::vector<Gillespie*>::iterator it = SSA.begin(); it != SSA.end(); ++it)
+    {
+        (*it)->Simulate(numSeed, numPatches, t_init, t_max);
     }
 }

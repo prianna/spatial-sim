@@ -16,5 +16,9 @@ void FileIO::OpenFile(std::string fname)
     {                              // Else, open file and append output.
         writeFile.open( fname );
     }
+    else
+    {
+        writeFile.open( fname, std::ios::app );
+    }
     
 }

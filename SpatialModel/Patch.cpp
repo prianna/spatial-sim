@@ -13,17 +13,17 @@ Patch::Patch( int L )
 {
     switch (L)
     {
-        case '0':
+        case LEVEL_0:
             nS = INIT_S_0;
             beta = BETA_L0;
             break;
             
-        case '1':
+        case LEVEL_1:
             nS = INIT_S_1;
             beta = BETA_L1;
             break;
             
-        case '2':
+        case LEVEL_2:
             nS = INIT_S_2;
             beta = BETA_L2;
             break;
@@ -31,11 +31,30 @@ Patch::Patch( int L )
         default:
             break;
     }
-    
-    nT = nS;
-    
-    for (int i = 0; i < nS; ++i)
+    /*for (int i = 0; i < nS; ++i)
     {
         S.push_back(1);
+    }*/
+    nT = nS+nI+nR;
+}
+
+void Patch::AddNeighbor( const Patch *adjPatch, int i )
+{
+    Neighbor patch;
+    patch.neighbor = adjPatch;
+    patch.index = i;
+    neighbors.push_back(patch);
+}
+
+std::vector<int> Patch::GetAdjIndices()
+{
+    std::vector<int> indices;
+    
+    for (std::vector<Neighbor>::iterator it = neighbors.begin();
+         it != neighbors.end(); ++it)
+    {
+        indices.push_back(it->index);
     }
+    
+    return indices;
 }

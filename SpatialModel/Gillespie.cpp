@@ -10,7 +10,7 @@
 
 enum {INFECTION, RECOVERY, NEIGHBOR1,
       NEIGHBOR2, NEIGHBOR3, NEIGHBOR4,
-      NEIGHBOR5} EVENTS;
+      NEIGHBOR5};
 
 //! \brief A generic binary search using C++ templates and iterators
 //! \param begin Iterator pointing to the first element
@@ -57,6 +57,7 @@ Gillespie::Gillespie( const std::vector<Patch*> States, int run )
                                        it!= States.end(); ++it)
     {
         State cur;
+        double totalRate;
         cur.adj = (*it)->GetAdjIndices();
 
         cur.S = (*it)->GetPopS();
@@ -64,9 +65,10 @@ Gillespie::Gillespie( const std::vector<Patch*> States, int run )
         cur.R = (*it)->GetPopR();
         
         cur.N = cur.S+cur.I+cur.R;
-        
-        cur.event[0] = (((*it)->GetBeta())*cur.S*cur.I);
+        cur.beta = (*it)->GetBeta();
+        cur.event[0] = (cur.beta*cur.S*cur.I);
         cur.event[1] = (GAMMA*cur.I);
+        
         for (int j = 0; j < cur.adj.size(); ++j)
         {
             cur.event[j+2] = cur.N*FLOW;
@@ -75,11 +77,10 @@ Gillespie::Gillespie( const std::vector<Patch*> States, int run )
         // Calculating total rate for patch i.
         for (int i = 0; i < MAX_EVENTS; ++i)
         {
-            cur.totalRate += cur.event[i];
+            totalRate += cur.event[i];
         }
-        
         curInf += curSup;
-        curSup += cur.totalRate;
+        curSup += totalRate;
         
         // Updating infinum and supremum for rates in patch i.
         cur.inf = curInf;
@@ -93,27 +94,40 @@ void Gillespie::Simulate( int t_init, int t_max )
 {
     std::uniform_int_distribution<> rNumInit(1, NUM_NODES-MIN_INDEX_L2);
     std::uniform_int_distribution<> rNumInfected(1, INIT_S_2);
-    std::uniform_int_distribution<> rSeedIndex(MIN_INDEX_L2, NUM_NODES-1);
     
     int numInit = rNumInit(gen);
-    std::vector<int> numInfected, seedIndex;
+    std::vector<int> numInfected, rSeedIndex, seedIndex;
+    
+    for (int i = MIN_INDEX_L2; i < NUM_NODES; ++i)
+    {
+        rSeedIndex.push_back(i);
+    }
+    
+    std::random_shuffle( rSeedIndex.begin(), rSeedIndex.end() );
     
     for (int i = 0; i < numInit; ++i)
     {
-        seedIndex.push_back(rSeedIndex(gen));
         numInfected.push_back(rNumInfected(gen));
+        seedIndex.push_back(rSeedIndex.at(i));
     }
+    
     
     for (std::vector<int>::iterator it = seedIndex.begin();
                                     it != seedIndex.end(); ++it)
     {
         curStates.at(*it).I = numInfected.at(it-seedIndex.begin());
         curStates.at(*it).S -= curStates.at(*it).I;
+        curStates.at(*it).N = curStates.at(*it).S +
+                              curStates.at(*it).I +
+                              curStates.at(*it).R ;
     }
     
     std::string suffix = "randSeed";
-    ioDevice.OpenFile(suffix+prefix);
-    std::string header = "Node\tT\tS\tI\tR\n";
+    ioDevice.OpenFile(prefix+suffix);
+    std::stringstream ss;
+    std::string header;
+    ss << "Node\tT\tS\tI\tR\tN\tR0\n";
+    header = ss.str();
     ioDevice.WriteHeader(header);
     
     for (double i = t_init; i < t_max; )
@@ -122,15 +136,61 @@ void Gillespie::Simulate( int t_init, int t_max )
         OutputStates( i );
     }
     
-    ioDevice.CloseFile(suffix+prefix);
+    ioDevice.CloseOutput();
 }
+
+void Gillespie::Simulate( int numSeed, int numPatches, int t_init, int t_max )
+{
+    std::vector<int> numInfected, rSeedIndex, seedIndex;
+    
+    for (int i = MIN_INDEX_L2; i < NUM_NODES; ++i)
+    {
+        rSeedIndex.push_back(i);
+    }
+    
+    std::random_shuffle( rSeedIndex.begin(), rSeedIndex.end() );
+    
+    for (int i = 0; i < numPatches; ++i)
+    {
+        numInfected.push_back(numSeed);
+        seedIndex.push_back(rSeedIndex.at(i));
+    }
+    
+    
+    for (std::vector<int>::iterator it = seedIndex.begin();
+         it != seedIndex.end(); ++it)
+    {
+        curStates.at(*it).I = numInfected.at(it-seedIndex.begin());
+        curStates.at(*it).S -= curStates.at(*it).I;
+        curStates.at(*it).N = curStates.at(*it).S +
+        curStates.at(*it).I +
+        curStates.at(*it).R ;
+    }
+    
+    std::string suffix = "specSeed";
+    ioDevice.OpenFile(prefix+suffix);
+    std::stringstream ss;
+    std::string header;
+    ss << "Node\tT\tS\tI\tR\tN\tR0\n";
+    header = ss.str();
+    ioDevice.WriteHeader(header);
+    
+    for (double i = t_init; i < t_max; )
+    {
+        i += Iterate();
+        OutputStates( i );
+    }
+    
+    ioDevice.CloseOutput();
+}
+
 
 double Gillespie::Iterate()
 {
 	double totalRate = ComputeTotalRate();
-	double r = (((double) rand() / (RAND_MAX)));
+	double r = runif(gen);
 	double dt = (-1/totalRate)*log( r ); // Time until next event.
-    double p = (((double) rand() / (RAND_MAX)))*totalRate;
+    double p = runif(gen)*totalRate;
     
     // Binary search for proper event.
     std::vector<State>::iterator itB = curStates.begin(), itE = curStates.end();
@@ -179,17 +239,16 @@ double Gillespie::Iterate()
                         else
                         {
                             // Decide which type of individual to move.
-                            int type = TypeToMove( *patch );
+                            int type_i = TypeToMove( *patch );
                             int j = patch->adj.at(i-2);
-                            // Move individual from patch p to patch j.
-                            MakeMove(patchIndex, j, type);
-                            
-                            // Want to match movements in a 1:1 manner.
-                            // Decide which type of individual to move from j.
-                            type = TypeToMove( curStates.at(j) );
-                            // Make equivalent move from patch j to patch p.
-                            MakeMove(j, patchIndex, type);
-
+                            if ( CheckMove(patchIndex, j, type_i) )
+                            {
+                                // Want to match movements in a 1:1 manner.
+                                // Make equivalent move from patch j to patch p.
+                                MakeMove(patchIndex, j, type_i);
+                                int type_j = TypeToMove( curStates.at(j) );
+                                MakeMove(j, patchIndex, type_j);
+                            }
                             i = MAX_EVENTS;
                         }
                         break;
@@ -208,31 +267,84 @@ double Gillespie::Iterate()
 
 double Gillespie::ComputeTotalRate()
 {
-    double totRate = 0;
-    
-    for (std::vector<State>::iterator it = curStates.begin();
-                                    it != curStates.end(); ++it)
+    double curInf = 0, curSup = 0;
+    for (std::vector<State>::iterator cur = curStates.begin();
+         cur != curStates.end(); ++cur)
     {
+        cur->event[0] = ((cur->S)*(cur->I)*(cur->beta));
+        cur->event[1] = GAMMA*(cur->I);
+        
+        for (int j = 0; j < cur->adj.size(); ++j)
+        {
+            int migrants = static_cast<int>((cur->N)*FLOW);
+            cur->event[j+2] = migrants;
+        }
+        
+        double totRate = 0;
+        // Calculating total rate for patch i.
         for (int i = 0; i < MAX_EVENTS; ++i)
         {
-            totRate += it->event[i];
+            totRate += cur->event[i];
         }
+        
+        curInf = curSup;
+        curSup += totRate;
+        
+        // Updating infinum and supremum for rates in patch i.
+        (cur->inf) = curInf;
+        (cur->sup) = curSup;
     }
-    
-    return totRate;
+    return curSup;
 }
 
-int Gillespie::TypeToMove(const State &i )
+int Gillespie::TypeToMove( const State &i )
 {
-    double pS = i.S/i.N, pI = i.I/i.N, pR = i.R/i.N;
-    double q = runif(gen);
+    double pS = static_cast<double>(i.S)/static_cast<double>(i.N);
+    double pI = static_cast<double>(i.I)/static_cast<double>(i.N);
+    double pR = static_cast<double>(i.R)/static_cast<double>(i.N);
+    std::uniform_real_distribution<> rtypes(0, pS+pI+pR);
+    double q = rtypes(gen);
     
-    if (q < pS) { return SUS; }
-    if ( q < pS+pI ) { return INF; }
-    if ( q < pS+pI+pR ){ return REC; }
+    if (q < pS) return SUS;
+    else if ( q < pS+pI ) return INF;
+    else if (q < pS+pI+pR ) return REC;
     
-    // error
+    else
+        std::cerr << "Error! No type to move." << std::endl;
+    
     return -1;
+}
+
+bool Gillespie::CheckMove(int i, int j, int type)
+{
+    if ( (curStates.at(j).N) == 0 || (curStates.at(i).N) == 0 )
+        return false;
+    
+    
+    switch (type)
+    {
+        case SUS:
+            if ( (curStates.at(j).S)/(curStates.at(j).N) ==
+                 (curStates.at(i).S)/(curStates.at(i).N))
+                return false;
+            else return true;
+            
+        case INF:
+            if ( (curStates.at(j).I)/(curStates.at(j).N) ==
+                (curStates.at(i).I)/(curStates.at(i).N))
+                return false;
+            else return true;
+            
+        case REC:
+            if ( (curStates.at(j).R)/(curStates.at(j).N) ==
+                (curStates.at(i).R)/(curStates.at(i).N))
+                return false;
+            else return true;
+            
+        default:
+            return false;
+    }
+    
 }
 
 void Gillespie::MakeMove(int i, int j, int type)
@@ -242,17 +354,22 @@ void Gillespie::MakeMove(int i, int j, int type)
         case SUS:
             (curStates.at(j).S)++;
             (curStates.at(i).S)--;
+            (curStates.at(j).N)++;
+            (curStates.at(i).N)--;
             break;
             
         case INF:
             (curStates.at(j).I)++;
             (curStates.at(i).I)--;
+            (curStates.at(j).N)++;
+            (curStates.at(i).N)--;
             break;
             
         case REC:
             (curStates.at(j).R)++;
             (curStates.at(i).R)--;
-
+            (curStates.at(j).N)++;
+            (curStates.at(i).N)--;
             break;
             
         default:
@@ -260,18 +377,32 @@ void Gillespie::MakeMove(int i, int j, int type)
     }
 }
 
+
+
 void Gillespie::OutputStates( double i )
 {
-    char index, S, I, R, T = i, delim = '\t';
+    long index, S, I, R, N;
+    double T = i;
+    std::string R0, output;
+    std::stringstream ss;
+    char delim = '\t';
     
     for (std::vector<State>::iterator it = curStates.begin();
          it != curStates.end(); ++it)
     {
-        index = static_cast<char>(it - curStates.begin());
-        S = static_cast<char>(it->S);
-        I = static_cast<char>(it->I);
-        R = static_cast<char>(it->R);
-        std::string line({index, delim, T, delim, S, delim, I, delim, R});
-        ioDevice.WriteLine(line);
+        
+        index = it - curStates.begin();
+        S = it->S;
+        I = it->I;
+        R = it->R;
+        N = it->N;
+        R0 = std::to_string(it->beta/GAMMA);
+        
+        ss << std::setprecision(4) << index << delim << T << delim << S << delim << I << delim
+        << R << delim << N << delim << R0 << std::endl;
     }
+    
+    output = ss.str();
+    ioDevice.WriteLine(output);
+    ss.clear();
 }

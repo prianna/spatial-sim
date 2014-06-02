@@ -12,7 +12,15 @@
 
 int main(int argc, const char * argv[])
 {
-    ModelWorld graph( 1 );
-    graph.CallSim(0, 10);
+    int numRuns = 1000, numParamSets = 1,
+        numSeed = 1, numPatches = 1,
+        t_init = 0, t_max = 40;
+    
+    int params[4] = {numSeed, numPatches, t_init, t_max};
+    
+    for (int i = 0; i < numRuns; ++i)
+    {
+        ModelWorld graph( numParamSets, i );
+        graph.CallSim(params[0], params[1], params[2], params[3]);
+    }
 }
-

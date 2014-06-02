@@ -19,10 +19,11 @@
 class ModelWorld {
 
 public:
-    ModelWorld( int numSims );
+    ModelWorld( int numSims, int numRun );
     ~ModelWorld();
     
     void CallSim( int t_init, int t_max );
+    void CallSim( int numSeed, int numPatches, int t_init, int t_max );
     void CallSim( std::string file );
     
 private:
@@ -32,7 +33,7 @@ private:
     // Gillespie object to simulate next state.
     std::vector<Gillespie*> SSA;
     
-    int numSSA;
+    int numSSA, numRun;
 
 };
 

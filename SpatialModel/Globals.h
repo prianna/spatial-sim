@@ -46,18 +46,18 @@ const int NUM_STATES = 3;
 enum{ SUS, INF, REC } STATES;
 const int DIM = NUM_NODES*NUM_STATES;
 const double T_MAX = 16;
-const double BETA_L0 = 0.6;
-const double BETA_L1 = 0.4;
+const double BETA_L0 = 0.8;
+const double BETA_L1 = 0.5;
 const double BETA_L2 = 0.2;
-const double GAMMA = 0.4;
-const double FLOW = 1/16;
+const double GAMMA = 0.5;
+const double FLOW = 0.06;
 
 // Initial populations at root, nonleaf, leaf node levels.
-const int INIT_S_0 = static_cast<int>(NUM_L0*POW(BRANCH, MAX_LEVEL-LEVEL_0)
+const int INIT_S_0 = static_cast<int>(POW(BRANCH, MAX_LEVEL-LEVEL_0)
                                             *MAGNITUDE);
-const int INIT_S_1 = static_cast<int>(NUM_L1*POW(BRANCH, MAX_LEVEL-LEVEL_1)
+const int INIT_S_1 = static_cast<int>(POW(BRANCH, MAX_LEVEL-LEVEL_1)
                                             *MAGNITUDE);
-const int INIT_S_2 = static_cast<int>(NUM_L2*POW(BRANCH, MAX_LEVEL-LEVEL_2)
+const int INIT_S_2 = static_cast<int>(POW(BRANCH, MAX_LEVEL-LEVEL_2)
                                             *MAGNITUDE);
 
 #endif

@@ -13,6 +13,7 @@
 #include <vector>
 #include <cmath>
 #include <random>
+#include <algorithm>
 #include <string>
 #include "FileIO.h"
 #include "Globals.h"
@@ -25,8 +26,8 @@ struct State
 {
     double event[MAX_EVENTS] = {};
     std::vector<int> adj;
-    int S, I, R, N;
-    double sup = 0, inf = 0, totalRate = 0;
+    unsigned int S, I, R, N;
+    double sup = 0, inf = 0, beta;
 
 };
 
@@ -35,7 +36,7 @@ struct State
 //! param RHS Value to compare.
 //! return Boolean true or false.
 inline bool operator==( const State &LHS, const double &RHS )
-{ return ( LHS.inf < RHS && LHS.sup <= RHS ) ? true:false; }
+{ return ( LHS.inf < RHS && RHS <= LHS.sup  ) ? true:false; }
 
 //! brief Helper function for struct State, overloads < operator.
 //! param LHS State object.
@@ -60,7 +61,9 @@ class Gillespie
     // initial pop and patch indexes to seed infection at.
     void Simulate( int t_init, int t_max );
     
-    // Use suffix file.
+    void Simulate( int numSeed, int numPatches, int t_init, int t_max );
+    
+    // Use file.
     void Simulate( std::string file, int t_init, int t_max);
     
  private:
@@ -68,6 +71,7 @@ class Gillespie
     double ComputeTotalRate();
     int TypeToMove( const State &i );
     void MakeMove( int from, int to, int type );
+    bool CheckMove( int from, int to, int type );
     void OutputStates( double t );
     
     FileIO ioDevice;
