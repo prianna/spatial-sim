@@ -8,17 +8,15 @@
 
 #include "FileIO.h"
 
-void FileIO::OpenFile(std::string fname)
+void FileIO::OpenFile(const std::string fname)
 {
+    /*std::size_t pos1 = fname.find("sim");
+    std::size_t pos2 = fname.find("_");
+    const std::string dir = fname.substr(pos1, pos2-pos1);*/
+
     std::ifstream check_file (fname);
-    
-    if ( !check_file.is_open() ) // If the file doesn't exist, create it.
-    {                              // Else, open file and append output.
-        writeFile.open( fname );
-    }
-    else
-    {
-        writeFile.open( fname, std::ios::app );
-    }
-    
+    // If the file doesn't exist, create it.
+    if ( !check_file.is_open() ) writeFile.open(fname);
+    // Else, open file and append output.
+    else writeFile.open(fname, std::ios::app );
 }

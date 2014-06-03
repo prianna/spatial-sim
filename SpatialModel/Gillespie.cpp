@@ -139,7 +139,7 @@ void Gillespie::Simulate( int t_init, int t_max )
     ioDevice.CloseOutput();
 }
 
-void Gillespie::Simulate( int numSeed, int numPatches, int t_init, int t_max )
+void Gillespie::Simulate( int initSeed, int numPatches, int t_init, int t_max )
 {
     std::vector<int> numInfected, rSeedIndex, seedIndex;
     
@@ -152,7 +152,7 @@ void Gillespie::Simulate( int numSeed, int numPatches, int t_init, int t_max )
     
     for (int i = 0; i < numPatches; ++i)
     {
-        numInfected.push_back(numSeed);
+        numInfected.push_back(initSeed);
         seedIndex.push_back(rSeedIndex.at(i));
     }
     
@@ -167,7 +167,7 @@ void Gillespie::Simulate( int numSeed, int numPatches, int t_init, int t_max )
         curStates.at(*it).R ;
     }
     
-    std::string suffix = "specSeed";
+    std::string suffix = "_specseed";
     ioDevice.OpenFile(prefix+suffix);
     std::stringstream ss;
     std::string header;

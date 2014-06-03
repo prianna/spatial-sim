@@ -18,8 +18,8 @@ class FileIO
 {
 public:
     void OpenFile( std::string fname );
-    void WriteLine( std::string line ){ writeFile << line << '\n'; }
-    void WriteHeader( std::string header ){ writeFile << header << '\n'; }
+    void WriteLine( std::string line ){ writeFile << line; }
+    void WriteHeader( std::string header ){ writeFile << header; }
     void CloseOutput(){ writeFile.close(); }
     void CloseInput(){ readFile.close(); }
     
@@ -28,7 +28,6 @@ public:
 private:
     std::ifstream readFile;
     std::ofstream writeFile;
-    
 };
 
 #endif /* defined(__SpatialModel__FileIO__) */

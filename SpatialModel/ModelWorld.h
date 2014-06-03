@@ -16,27 +16,23 @@
 #include "Gillespie.h"
 #include "Patch.h"
 #include "Globals.h"
+
+
 struct SeedParam
 {
-    template<typename T>
-    SeedParam( int P, T S, double t0, double tM )
-    : numPatches(P), t_init(t0), t_max(tM), randomSeed(false)
-    {
-
-    }
+    SeedParam()
+    : randomSeed(false), t_init(0), t_max(0), initSeed(0), numPatches(0)
+    {}
     
-    SeedParam( int P, bool rSeed, double t0, double tM )
-    : numPatches(P), randomSeed(true), t_init(t0), t_max(tM)
-    {
-        
-        std::random_device rd;
-        std::mt19937 rnum(rd());
-        std::uniform_int_distribution<> rdseed(1, INIT_S_2);
-        initialSeed = rdseed(rnum);
-    }
+    SeedParam( int S, int P, double t0, double tM )
+    : randomSeed(false), t_init(t0), t_max(tM), initSeed(S), numPatches(P)
+    {}
     
-    int numPatches;
-    int initialSeed;
+    SeedParam( bool rSeed, double t0, double tM )
+    : randomSeed(true), t_init(t0), t_max(tM), initSeed(0), numPatches(0)
+    {}
+    
+    int initSeed, numPatches;
     bool randomSeed;
     double t_init, t_max;
 };
@@ -47,12 +43,10 @@ public:
     // Takes in the number of simulations to run in parallel, the number of the
     // current run, and a vector of parameters to send to the Gillespie sims.
     // Can either have same set of parameters for each, or different.
-    ModelWorld( int numSims, int runNum );
+    ModelWorld( int numSims, int runNum, std::vector<SeedParam> P );
     ~ModelWorld();
     
-    void CallSim( int t_init, int t_max );
-    void CallSim( int numSeed, int numPatches, int t_init, int t_max );
-    void CallSim( std::string file );
+    void CallSim();
     
 private:
     // Nodes
@@ -64,6 +58,8 @@ private:
     std::vector<SeedParam> params;
     
     int numSSA, runNum;
+    
+    bool same;
 
 };
 

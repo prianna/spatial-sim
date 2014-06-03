@@ -45,7 +45,6 @@ const int MAGNITUDE = 10; // Population scaling magnitude.
 const int NUM_STATES = 3;
 enum{ SUS, INF, REC } STATES;
 const int DIM = NUM_NODES*NUM_STATES;
-const double T_MAX = 16;
 const double BETA_L0 = 0.8;
 const double BETA_L1 = 0.5;
 const double BETA_L2 = 0.2;

@@ -6,8 +6,8 @@
 
 #include "ModelWorld.h"
 
-ModelWorld::ModelWorld( int numSims, int run )
-: numSSA(numSims), runNum(run)
+ModelWorld::ModelWorld( int numSims, int run, std::vector<SeedParam> P )
+: numSSA(numSims), runNum(run), params(P)
 {
     for (int i = 0; i < NUM_NODES; ++i)
     {
@@ -57,7 +57,7 @@ ModelWorld::ModelWorld( int numSims, int run )
     
     for (int i = 0; i < numSims; ++i)
     {
-        std::string prefix = "run"+std::to_string(runNum)+"_";
+        std::string prefix = "run"+std::to_string(run)+"sim"+std::to_string(i);
         SSA.push_back( new Gillespie(nodes, prefix) );
     }
 }
@@ -79,18 +79,15 @@ ModelWorld::~ModelWorld()
     }
 }
 
-void ModelWorld::CallSim(int t_init, int t_max)
+void ModelWorld::CallSim()
 {
     for ( std::vector<Gillespie*>::iterator it = SSA.begin(); it != SSA.end(); ++it)
     {
-        (*it)->Simulate(t_init, t_max);
-    }
-}
-
-void ModelWorld::CallSim(int numSeed, int numPatches, int t_init, int t_max)
-{
-    for ( std::vector<Gillespie*>::iterator it = SSA.begin(); it != SSA.end(); ++it)
-    {
-        (*it)->Simulate(numSeed, numPatches, t_init, t_max);
+        SeedParam paramSet = params.at(it-SSA.begin());
+        
+        if ( paramSet.randomSeed ) (*it)->Simulate(paramSet.t_init, paramSet.t_max);
+        
+        else (*it)->Simulate(paramSet.initSeed, paramSet.numPatches,
+                             paramSet.t_init, paramSet.t_max);
     }
 }

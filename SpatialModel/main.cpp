@@ -7,20 +7,45 @@
 //
 
 #include <iostream>
+#include <cstdlib>
+#include <cstring>
+#include <sys/stat.h>
 #include "Globals.h"
 #include "ModelWorld.h"
 
 int main(int argc, const char * argv[])
 {
-    int numRuns = 1000, numParamSets = 1,
-        numSeed = 2, numPatches = 1,
-        t_init = 0, t_max = 50;
+    const int numParams = 1;
+    int numRuns = 100, numSims = 1;
+    int numSeed[numParams] = {1};
+    int numPatches[numParams] = {1};
+    int t_init[numParams] = {0};
+    int t_max[numParams] = {50};
+    bool rSeed[numParams] = {false};
     
-    int params[4] = {numSeed, numPatches, t_init, t_max};
+    std::vector<SeedParam> param;
+
+    // Make directories for output params.
+    /*
+     
+     std::string dir = "paramset"+std::to_string(i);
+     int check = mkdir(dir.c_str(), S_IRWXU);
+     etc...
+     */
+    
+    for (int i = 0; i < numParams; ++i)
+    {
+        SeedParam P( numSeed[i], numPatches[i], t_init[i], t_max[i] );
+
+        if (rSeed[i]) P.randomSeed = true;
+        
+        param.push_back(P);
+    }
     
     for (int i = 0; i < numRuns; ++i)
     {
-        ModelWorld graph( numParamSets, i );
-        graph.CallSim(params[0], params[1], params[2], params[3]);
+        ModelWorld graph( numSims, i, param );
+        graph.CallSim();
     }
+
 }
