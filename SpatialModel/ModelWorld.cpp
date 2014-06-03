@@ -6,8 +6,8 @@
 
 #include "ModelWorld.h"
 
-ModelWorld::ModelWorld( int numSims, int numRun )
-: numSSA(numSims), numRun(numRun)
+ModelWorld::ModelWorld( int numSims, int run )
+: numSSA(numSims), runNum(run)
 {
     for (int i = 0; i < NUM_NODES; ++i)
     {
@@ -57,7 +57,8 @@ ModelWorld::ModelWorld( int numSims, int numRun )
     
     for (int i = 0; i < numSims; ++i)
     {
-        SSA.push_back( new Gillespie(nodes, numRun) );
+        std::string prefix = "run"+std::to_string(runNum)+"_";
+        SSA.push_back( new Gillespie(nodes, prefix) );
     }
 }
 

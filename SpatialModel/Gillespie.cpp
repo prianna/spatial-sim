@@ -49,8 +49,8 @@ Iterator binSearch(Iterator& begin, Iterator& end, const T& key)
 
 //! \brief Constructor for class Gillespie.
 //! \param States Vector of patch variables to be "loaded" as states.
-Gillespie::Gillespie( const std::vector<Patch*> States, int run )
-: gen(rd()), runif(0.0, 1.0), prefix("run"+std::to_string(run)+"_")
+Gillespie::Gillespie( const std::vector<Patch*> States, std::string pref )
+: gen(rd()), runif(0.0, 1.0), prefix(pref)
 {
     double curInf = 0, curSup = 0;
     for (std::vector<Patch*>::const_iterator it = States.begin();
@@ -171,7 +171,7 @@ void Gillespie::Simulate( int numSeed, int numPatches, int t_init, int t_max )
     ioDevice.OpenFile(prefix+suffix);
     std::stringstream ss;
     std::string header;
-    ss << "Node\tT\tS\tI\tR\tN\tR0\n";
+    ss << "Node\tT\t\tS\tI\tR\tN\tR0\n";
     header = ss.str();
     ioDevice.WriteHeader(header);
     

@@ -55,7 +55,7 @@ inline bool operator>( const State &LHS, const double &RHS )
 class Gillespie
 {
  public:
-    Gillespie( const std::vector<Patch*> States, int prefix );
+    Gillespie( const std::vector<Patch*> States, std::string prefix );
     
     // Can either simulate using random numbers OR using a vector specifying
     // initial pop and patch indexes to seed infection at.
