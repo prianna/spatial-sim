@@ -61,7 +61,7 @@ class Gillespie
     // initial pop and patch indexes to seed infection at.
     void Simulate( int t_init, int t_max );
     
-    void Simulate( int numSeed, int numPatches, int t_init, int t_max );
+    void Simulate( int numSeed, int numPatches, int t_init, int t_max, int seedLevel );
     
     // Use file.
     void Simulate( std::string file, int t_init, int t_max);
@@ -72,6 +72,7 @@ class Gillespie
     int TypeToMove( const State &i );
     void MakeMove( int from, int to, int type );
     bool CheckMove( int from, int to, int type );
+    bool Infecteds();
     void OutputStates( double t );
     
     FileIO ioDevice;

@@ -40,23 +40,44 @@ const int INIT_I = 0; // Initially, infected pop is 0.
 const int INIT_R = 0; // Initially, recovered pop is 0.
 
 
-// PARAMETERS
-const int MAGNITUDE = 10; // Population scaling magnitude.
+
+// POPULATION
+const int MAGNITUDE_L0 = 1000; // Population scaling magnitudes.
+const int MAGNITUDE_L1 = 25;
+const int MAGNITUDE_L2 = 25;
+
 const int NUM_STATES = 3;
 enum{ SUS, INF, REC } STATES;
 const int DIM = NUM_NODES*NUM_STATES;
-const double BETA_L0 = 0.8;
-const double BETA_L1 = 0.5;
-const double BETA_L2 = 0.2;
-const double GAMMA = 0.5;
-const double FLOW = 0.06;
-
 // Initial populations at root, nonleaf, leaf node levels.
 const int INIT_S_0 = static_cast<int>(POW(BRANCH, MAX_LEVEL-LEVEL_0)
-                                            *MAGNITUDE);
+                                      *1000);
 const int INIT_S_1 = static_cast<int>(POW(BRANCH, MAX_LEVEL-LEVEL_1)
-                                            *MAGNITUDE);
+                                      *25);
 const int INIT_S_2 = static_cast<int>(POW(BRANCH, MAX_LEVEL-LEVEL_2)
-                                            *MAGNITUDE);
+                                      *25);
+
+// PARAMETER
+const double EPSILON_L0 = 0.195;
+const double EPSILON_L1 = EPSILON_L0;
+const double EPSILON_L2 = EPSILON_L0;
+const double RISK = 1.0;
+const double GAMMA = 5.0;
+const double FLOW = 0.10;
+
+const double KAPPA_L0 = 1/(1-EPSILON_L0+EPSILON_L0*INIT_S_0);
+const double KAPPA_L1 = 1/(1-EPSILON_L1+EPSILON_L1*INIT_S_1);
+const double KAPPA_L2 = 1/(1-EPSILON_L2+EPSILON_L2*INIT_S_2);
+
+const double BETA_L0 = RISK*KAPPA_L0;
+const double BETA_L1 = RISK*KAPPA_L1;
+const double BETA_L2 = RISK*KAPPA_L2;
+
+// DESIRED REPRODUCTIVE NUMBER
+const double R_L0 = (BETA_L0*INIT_S_0)/GAMMA;
+const double R_L1 = (BETA_L1*INIT_S_1)/GAMMA;
+const double R_L2 = (BETA_L2*INIT_S_2)/GAMMA;
+
+
 
 #endif

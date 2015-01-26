@@ -139,11 +139,34 @@ void Gillespie::Simulate( int t_init, int t_max )
     ioDevice.CloseOutput();
 }
 
-void Gillespie::Simulate( int initSeed, int numPatches, int t_init, int t_max )
+void Gillespie::Simulate( int initSeed, int numPatches, int t_init, int t_max,
+                          int seedLevel )
 {
     std::vector<int> numInfected, rSeedIndex, seedIndex;
+    int nodeLimit = 0, minIndex = 0;
     
-    for (int i = MIN_INDEX_L2; i < NUM_NODES; ++i)
+    switch (seedLevel)
+    {
+        case 0:
+            nodeLimit = NUM_L0;
+            minIndex = MIN_INDEX_L0;
+            break;
+            
+        case 1:
+            nodeLimit = NUM_L0+NUM_L1;
+            minIndex = MIN_INDEX_L1;
+            break;
+            
+        case 2:
+            nodeLimit = NUM_NODES;
+            minIndex = MIN_INDEX_L2;
+            break;
+            
+        default:
+            break;
+    }
+    
+    for (int i = minIndex; i < nodeLimit; ++i)
     {
         rSeedIndex.push_back(i);
     }
@@ -177,8 +200,14 @@ void Gillespie::Simulate( int initSeed, int numPatches, int t_init, int t_max )
     
     for (double i = t_init; i < t_max; )
     {
-        i += Iterate();
-        OutputStates( i );
+        // Don't bother iterating if no infecteds remain.
+        if (Infecteds())
+        {
+            i += Iterate();
+            OutputStates( i );
+        }
+        else
+            i = t_max;
     }
     
     ioDevice.CloseOutput();
@@ -377,6 +406,23 @@ void Gillespie::MakeMove(int i, int j, int type)
     }
 }
 
+bool Gillespie::Infecteds()
+{
+    long I;
+    int numInf = 0;
+    
+    for (std::vector<State>::iterator it = curStates.begin();
+         it != curStates.end(); ++it)
+    {
+        I = it->I;
+        numInf += I;
+    }
+
+    if (numInf > 0) return true;
+    
+    return false;
+}
+
 
 
 void Gillespie::OutputStates( double i )
@@ -396,10 +442,10 @@ void Gillespie::OutputStates( double i )
         I = it->I;
         R = it->R;
         N = it->N;
-        R0 = std::to_string(it->beta/GAMMA);
+        R0 = std::to_string((it->beta)*(it->N)/GAMMA);
         
-        ss << std::setprecision(4) << index << delim << T << delim << S << delim << I << delim
-        << R << delim << N << delim << R0 << std::endl;
+        ss << std::setprecision(4) << index << delim << T << delim << S << delim
+        << I << delim << R << delim << N << delim << R0 << std::endl;
     }
     
     output = ss.str();

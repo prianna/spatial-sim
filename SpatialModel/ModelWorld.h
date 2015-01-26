@@ -21,18 +21,20 @@
 struct SeedParam
 {
     SeedParam()
-    : randomSeed(false), t_init(0), t_max(0), initSeed(0), numPatches(0)
+    : randomSeed(false), t_init(0), t_max(0), initSeed(0), numPatches(0), seedLevel(LEVEL_2)
     {}
     
-    SeedParam( int S, int P, double t0, double tM )
-    : randomSeed(false), t_init(t0), t_max(tM), initSeed(S), numPatches(P)
+    SeedParam( int S, int P, double t0, double tM, int L )
+    : randomSeed(false), t_init(t0), t_max(tM), initSeed(S), numPatches(P),
+    seedLevel(L)
     {}
     
     SeedParam( bool rSeed, double t0, double tM )
-    : randomSeed(true), t_init(t0), t_max(tM), initSeed(0), numPatches(0)
+    : randomSeed(true), t_init(t0), t_max(tM), initSeed(0), numPatches(0),
+    seedLevel(LEVEL_2)
     {}
     
-    int initSeed, numPatches;
+    int initSeed, numPatches, seedLevel;
     bool randomSeed;
     double t_init, t_max;
 };
@@ -43,7 +45,7 @@ public:
     // Takes in the number of simulations to run in parallel, the number of the
     // current run, and a vector of parameters to send to the Gillespie sims.
     // Can either have same set of parameters for each, or different.
-    ModelWorld( int numSims, int runNum, std::vector<SeedParam> P );
+    ModelWorld( int numSims, int runNum, int pSet, std::vector<SeedParam> P );
     ~ModelWorld();
     
     void CallSim();
@@ -57,10 +59,7 @@ private:
     
     std::vector<SeedParam> params;
     
-    int numSSA, runNum;
-    
-    bool same;
-
+    int numSSA, runNum, paramSet;
 };
 
 

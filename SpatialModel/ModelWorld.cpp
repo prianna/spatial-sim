@@ -6,8 +6,8 @@
 
 #include "ModelWorld.h"
 
-ModelWorld::ModelWorld( int numSims, int run, std::vector<SeedParam> P )
-: numSSA(numSims), runNum(run), params(P)
+ModelWorld::ModelWorld( int numSims, int run, int pSet, std::vector<SeedParam> P )
+: numSSA(numSims), runNum(run), params(P), paramSet(pSet)
 {
     for (int i = 0; i < NUM_NODES; ++i)
     {
@@ -57,7 +57,8 @@ ModelWorld::ModelWorld( int numSims, int run, std::vector<SeedParam> P )
     
     for (int i = 0; i < numSims; ++i)
     {
-        std::string prefix = "run"+std::to_string(run)+"sim"+std::to_string(i);
+        std::string prefix = "paramset"+std::to_string(pSet)+"run"+
+                              std::to_string(run)+"sim"+std::to_string(i);
         SSA.push_back( new Gillespie(nodes, prefix) );
     }
 }
@@ -88,6 +89,6 @@ void ModelWorld::CallSim()
         if ( paramSet.randomSeed ) (*it)->Simulate(paramSet.t_init, paramSet.t_max);
         
         else (*it)->Simulate(paramSet.initSeed, paramSet.numPatches,
-                             paramSet.t_init, paramSet.t_max);
+                             paramSet.t_init, paramSet.t_max, paramSet.seedLevel);
     }
 }
